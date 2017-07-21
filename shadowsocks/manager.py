@@ -67,7 +67,7 @@ class Manager(object):
             exit(1)
         self._loop.add(self._control_socket,
                        eventloop.POLL_IN, self)
-        self._loop.add_periodic(self.handle_periodic)
+        # self._loop.add_periodic(self.handle_periodic)
 
         port_password = config['port_password']
         del config['port_password']
@@ -114,22 +114,25 @@ class Manager(object):
             if parsed:
                 command, config = parsed
                 a_config = self._config.copy()
-                if config:
-                    # let the command override the configuration file
-                    a_config.update(config)
-                if 'server_port' not in a_config:
-                    logging.error('can not find server_port in config')
+                if command == 'stat':
+                    self.handle_periodic()
                 else:
-                    if command == 'add':
-                        self.add_port(a_config)
-                        self._send_control_data(b'ok')
-                    elif command == 'remove':
-                        self.remove_port(a_config)
-                        self._send_control_data(b'ok')
-                    elif command == 'ping':
-                        self._send_control_data(b'pong')
+                    if config:
+                        # let the command override the configuration file
+                        a_config.update(config)
+                    if 'server_port' not in a_config:
+                        logging.error('can not find server_port in config')
                     else:
-                        logging.error('unknown command %s', command)
+                        if command == 'add':
+                            self.add_port(a_config)
+                            self._send_control_data(b'ok')
+                        elif command == 'remove':
+                            self.remove_port(a_config)
+                            self._send_control_data(b'ok')
+                        elif command == 'ping':
+                            self._send_control_data(b'pong')
+                        else:
+                            logging.error('unknown command %s', command)
 
     def _parse_command(self, data):
         # commands:
@@ -173,6 +176,7 @@ class Manager(object):
                 i = 0
         if len(r) > 0:
             send_data(r)
+        self._send_control_data('ok')
         self._statistics.clear()
 
     def _send_control_data(self, data):
