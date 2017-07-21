@@ -19,18 +19,29 @@ class DBconnect:
         
     def fetchAll(self):
         result = []
-        cur = DBconnect.conn.cursor()
-        cur.execute('select %s from %s' % ', '.join(DBconnect.alias), DBconnect.table )
+        conn = cymysql.connect(
+            host = config.DB_HOST, 
+            user = config.DB_USER, 
+            passwd = config.DB_PASS, 
+            db = config.DB_NAME,
+            port = config.DB_PORT,
+        )
+        cur = conn.cursor()
+        cur.execute('select %s from %s' % (', '.join(DBconnect.alias), DBconnect.table))
         result = cur.fetchall()
         cur.close()
         return result
 
     def runSql(self, sql):
-        cur = DBconnect.conn.cursor()
+        conn = cymysql.connect(
+            host = config.DB_HOST, 
+            user = config.DB_USER, 
+            passwd = config.DB_PASS, 
+            db = config.DB_NAME,
+            port = config.DB_PORT,
+        )
+        cur = conn.cursor()
         cur.execute(sql)
         result = cur.fetchall()
         cur.close()
     
-
-db = DBconnect()
-print db.fetchAll()
