@@ -8,6 +8,8 @@ DB_USER = 'user'
 DB_PASS = 'pass'
 DB_NAME = 'ss'
 DB_CHARSET = 'utf-8'
+DB_TYPE = 'mysql'
+DB_TABLE = 'user'
 
 # SS settings
 # -----------------------------
