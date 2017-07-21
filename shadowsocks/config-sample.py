@@ -2,7 +2,12 @@ import logging
 
 # Database settings
 # -----------------------------
-DB_
+DB_HOST = '127.0.0.1'
+DB_PORT = 3306
+DB_USER = 'user'
+DB_PASS = 'pass'
+DB_NAME = 'ss'
+DB_CHARSET = 'utf-8'
 
 # SS settings
 # -----------------------------
