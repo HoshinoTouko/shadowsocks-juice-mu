@@ -26,11 +26,16 @@ import socket
 import config
 import thread
 import time
+import dbconnect
+import copy
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
-from shadowsocks import shell, daemon, eventloop, tcprelay, udprelay, \
+from shadowsocks import common, shell, daemon, eventloop, tcprelay, udprelay, \
     asyncdns, manager
 
+# Test
+# import struct
+# from shadowsocks import cryptor
 
 def socket_send_command(command):
     data = ''
@@ -44,16 +49,31 @@ def socket_send_command(command):
         # TODO: bad way solve timed out
         time.sleep(0.05)
     except Exception as e:
-        if config.SS_VERBOSE:
+        if config.S_DEBUG:
             import traceback
             traceback.print_exc()
         logging.warn('Exception thrown when sending command: %s' % e)
     return data
 
 
+def socket_get_transfer():
+    transfer = {}
+    cli = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    cli.sendto('stat: {}', (config.MANAGER_BIND_IP, config.MANAGER_BIND_PORT))
+    while True:
+        data, addr = cli.recvfrom(1500)
+        if data == 'ok':
+            break
+        data = json.loads(data)
+        logging.info(data)
+        transfer.update(data)
+    cli.close()
+    return transfer
+
+
 def subprocess_callback(stack, exception):
     logging.info('Exception thrown in %s: %s' % (stack, exception))
-    if config.SS_VERBOSE:
+    if config.S_DEBUG:
         traceback.print_exc()
 
 
@@ -68,7 +88,12 @@ def main():
         'fast_open': config.S_FASTOPEN,
         'debug': config.S_DEBUG,
         'one_time_auth': config.S_OTA,
+        'verbose': config.S_DEBUG,
     }
+    customMethod = config.S_ENABLE_CUSTOM_METHOD
+
+    # Database
+    dbconn = dbconnect.DBconnect()
 
     # Init logging
     logging.basicConfig(format=config.LOG_FORMAT,
@@ -79,13 +104,102 @@ def main():
 
     logging.info('Run sub process')
     thread.start_new_thread(manager.run, (configurations, subprocess_callback,))
-    time.sleep(5)
+    time.sleep(1)
 
-    socket_send_command(
-            'add: {"server_port": 8389, "password": "123", "method":"%s"}' % config.S_METHOD)
+    # socket_send_command(
+    #        'add: {"server_port": 8389, "password": "123", "method":"%s"}' % config.S_METHOD)
     
+    alias = config.DB_ALIAS
+    users = dbconn.fetchAll()
+    activeList = []
     while True:
-        time.sleep(50)
+        time.sleep(10)
+        # Keep old users
+        oldUsers = []
+        for user in users:
+            oldUsers.append(user)
+        # Fetch all data
+        users = []
+        users = dbconn.fetchAll()
+        
+        if config.S_DEBUG and 0:
+            logging.info('oldUsers----------------')
+            logging.info(str(oldUsers))
+            logging.info('Users----------------')
+            logging.info(str(users))
+        # Init some vars
+        updateList = []
+        transfer = socket_get_transfer()
+        if config.S_DEBUG:
+            logging.info('Transfer data %s' % str(transfer))
+            logging.info('----------------')
 
+        # Check if the user's password has been changed
+        if config.S_DEBUG:
+            logging.info('Check pass...')
+        for user in users:
+            serverPort = user[0]
+            newPass = user[1]
+            for oldUser in oldUsers:
+                if serverPort == oldUser[0]:
+                    if newPass != oldUser[1]:
+                        if serverPort in activeList:
+                            logging.info('port %d change its pass to %s' % (serverPort, newPass))
+                            socket_send_command('del: {"server_port": %d}' % serverPort)
+                            activeList.remove(userverPort)
+                    continue
+        if config.S_DEBUG:
+            logging.info('Check pass end.')
+            logging.info('----------------')
+        
+        # Check if the user can use ss
+        if config.S_DEBUG:
+            logging.info('Check available...')
+            logging.info('ActiveList before: %s' % str(activeList))
+        for user in users:
+            # logging.info(str(user))
+            if (user[5]) and (user[2] + user[3] < user[4]):
+                if user[0] not in activeList:
+                    data = {'server_port': int(user[0]), 'password': user[1]}
+                    if customMethod:
+                        data['method'] = user[8]
+                    if config.S_DEBUG:
+                        logging.info('Add %s' % str(data))
+                    socket_send_command('add: ' + str(data).replace("'", '"'))
+                    activeList.append(user[0])
+            else:
+                if user[0] in activeList:
+                    socket_send_command('remove: {"server_port": %d}' % user[0])
+                    if config.S_DEBUG:
+                        logging.info('Remove port at %s' % user[0])
+                    activeList.remove(user[0])
+        if config.S_DEBUG:
+            logging.info('ActiveList after: %s' % str(activeList))
+            logging.info('Check available end...')
+            logging.info('----------------')
+
+        # Update traffic
+        for port, traffic in transfer.items():
+            for user in users:
+                if user[0] == port:
+                    updateList.append[{'port': port, 'u': user[2],'d': user[3] + traffic}]
+                    continue
+        
+        # Update to Database
+        if config.S_DEBUG:
+            logging.info('Update to database...')
+        for i in updateList:
+            sql = 'UPDATE %s SET %s="%d", %s="%d", %s="%d" WHERE %s="%d";' % (
+                config.DB_NAME, 
+                alias[2], i['u'], 
+                alias[3], i['d'], 
+                alias[6], str(int(last_time)),
+                alias[0], i['port']
+            )
+            logging.info('SQL: ' % sql)
+        if config.S_DEBUG:
+            logging.info('Update to database end.')
+            logging.info('----------------')
+        
 if __name__ == '__main__':
     main()
