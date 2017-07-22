@@ -11,6 +11,8 @@ DB_CHARSET = 'utf-8'
 DB_TYPE = 'mysql'
 DB_TABLE = 'user'
 DB_ALIAS = ['port', 'passwd', 'u', 'd', 'transfer_enable', 'enable', 't', 'switch']
+# ['port', 'sspwd', 'flow_up', 'flow_down', 'transfer', 'enable', 'lastConnTime', 'enable']
+# For sendya/shadowsocks-panel
 
 # SS settings
 # -----------------------------
