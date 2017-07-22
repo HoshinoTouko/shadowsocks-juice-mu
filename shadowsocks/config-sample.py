@@ -10,6 +10,7 @@ DB_NAME = 'ss'
 DB_CHARSET = 'utf-8'
 DB_TYPE = 'mysql'
 DB_TABLE = 'user'
+DB_ALIAS = ['port', 'passwd', 'u', 'd', 'transfer_enable', 'enable', 't', 'switch']
 
 # SS settings
 # -----------------------------
@@ -20,6 +21,8 @@ S_TIMEOUT = 5
 S_FASTOPEN = False
 S_DEBUG = False
 S_OTA = False
+S_ENABLE_CUSTOM_METHOD = False
+S_LOOP_CIRCLE = 30
 
 # Manager settings
 # -----------------------------
