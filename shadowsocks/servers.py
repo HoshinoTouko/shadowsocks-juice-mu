@@ -28,6 +28,7 @@ import thread
 import time
 import dbconnect
 import copy
+import json
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 from shadowsocks import common, shell, daemon, eventloop, tcprelay, udprelay, \
@@ -39,7 +40,8 @@ from shadowsocks import common, shell, daemon, eventloop, tcprelay, udprelay, \
 
 def socket_send_command(command):
     data = ''
-    logging.info('Socket send: %s' % command)
+    if config.S_DEBUG:
+        logging.info('Socket send: %s' % command)
     try:
         cli = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         cli.settimeout(2)
@@ -64,8 +66,7 @@ def socket_get_transfer():
         data, addr = cli.recvfrom(1500)
         if data == 'ok':
             break
-        data = json.loads(data)
-        logging.info(data)
+        data = json.loads(data.replace('stat:', ''))
         transfer.update(data)
     cli.close()
     return transfer
@@ -100,7 +101,7 @@ def main():
             datefmt=config.LOG_DATE_FORMAT, stream=sys.stdout, level=config.LOG_LEVEL)
     logging.info('----------------------------------------------')
     logging.info('Shadowsocks-juice-mu Server Starting...')
-    logging.info('Ver. 0.1')
+    logging.info('Ver. 0.5')
 
     logging.info('Run sub process')
     thread.start_new_thread(manager.run, (configurations, subprocess_callback,))
@@ -112,8 +113,9 @@ def main():
     alias = config.DB_ALIAS
     users = dbconn.fetchAll()
     activeList = []
+    loopTime = config.S_LOOP_CIRCLE
     while True:
-        time.sleep(10)
+        time.sleep(loopTime)
         # Keep old users
         oldUsers = []
         for user in users:
@@ -128,7 +130,6 @@ def main():
             logging.info('Users----------------')
             logging.info(str(users))
         # Init some vars
-        updateList = []
         transfer = socket_get_transfer()
         if config.S_DEBUG:
             logging.info('Transfer data %s' % str(transfer))
@@ -177,29 +178,47 @@ def main():
             logging.info('ActiveList after: %s' % str(activeList))
             logging.info('Check available end...')
             logging.info('----------------')
+        
 
         # Update traffic
+        updateList = []
+        if config.S_DEBUG:
+            logging.info('Stat transfer...')
         for port, traffic in transfer.items():
+            port = int(port)
             for user in users:
                 if user[0] == port:
-                    updateList.append[{'port': port, 'u': user[2],'d': user[3] + traffic}]
-                    continue
-        
+                    if config.S_DEBUG:
+                        logging.info('Update user port at: %d' % port)
+                    updateList.append({'port': port, 'u': user[2],'d': user[3] + traffic})
+                    break
+        if config.S_DEBUG:
+            logging.info('Update list: %s' % str(updateList))
+            logging.info('Stat transfer end...')
+
         # Update to Database
+        sqlList = []
         if config.S_DEBUG:
             logging.info('Update to database...')
         for i in updateList:
-            sql = 'UPDATE %s SET %s="%d", %s="%d", %s="%d" WHERE %s="%d";' % (
-                config.DB_NAME, 
-                alias[2], i['u'], 
-                alias[3], i['d'], 
-                alias[6], str(int(last_time)),
-                alias[0], i['port']
+            sql = 'UPDATE %s SET %s=%d, %s=%d, %s=%s WHERE %s=%d;' % (
+                config.DB_TABLE, 
+                alias[2], int(i['u']), 
+                alias[3], int(i['d']), 
+                alias[6], str(int(time.time())),
+                alias[0], int(i['port'])
             )
-            logging.info('SQL: ' % sql)
+            sqlList.append(sql)
+        if len(sqlList):
+            result = dbconn.runSql(';'.join(sqlList))
+            if config.S_DEBUG:
+                logging.info('SQL: %s, result: %s' % (';'.join(sqlList), result))
+        else:
+            if config.S_DEBUG:
+                logging.info('Nothing to update')
         if config.S_DEBUG:
             logging.info('Update to database end.')
-            logging.info('----------------')
+            logging.info('----------------------')
         
 if __name__ == '__main__':
     main()
