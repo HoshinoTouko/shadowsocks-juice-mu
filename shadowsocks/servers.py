@@ -90,6 +90,7 @@ def main():
         'debug': config.S_DEBUG,
         'one_time_auth': config.S_OTA,
         'verbose': config.S_DEBUG,
+        'firewall_mode': config.S_FIREWALL_MODE,
     }
     customMethod = config.S_ENABLE_CUSTOM_METHOD
 

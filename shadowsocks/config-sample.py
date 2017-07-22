@@ -24,6 +24,9 @@ S_OTA = False
 S_ENABLE_CUSTOM_METHOD = False
 S_LOOP_CIRCLE = 30
 
+S_FIREWALLD = True
+S_FIREWALL_MODE = 'blacklist'
+
 # Manager settings
 # -----------------------------
 MANAGER_BIND_IP = '127.0.0.1'
