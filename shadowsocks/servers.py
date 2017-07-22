@@ -105,7 +105,7 @@ def main():
 
     logging.info('Run sub process')
     thread.start_new_thread(manager.run, (configurations, subprocess_callback,))
-    time.sleep(1)
+    # time.sleep(1)
 
     # socket_send_command(
     #        'add: {"server_port": 8389, "password": "123", "method":"%s"}' % config.S_METHOD)
