@@ -18,7 +18,7 @@ S_BIND_PORT = 1088
 S_METHOD = 'chacha20-ietf-poly1305'
 S_TIMEOUT = 5
 S_FASTOPEN = False
-S_DEBUG = True
+S_DEBUG = False
 S_OTA = False
 
 # Manager settings
