@@ -211,7 +211,7 @@ def main():
             )
             sqlList.append(sql)
         if len(sqlList):
-            result = dbconn.runSql(';'.join(sqlList))
+            result = dbconn.runSql(' '.join(sqlList))
             if config.S_DEBUG:
                 logging.info('SQL: %s, result: %s' % (';'.join(sqlList), result))
         else:
