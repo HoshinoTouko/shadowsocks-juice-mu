@@ -27,13 +27,14 @@ class DBconnect:
             port = config.DB_PORT,
         )
         cur = conn.cursor()
-        cur.execute('select %s from %s' % (', '.join(DBconnect.alias), DBconnect.table))
+        cur.execute('SELECT %s FROM %s' % (', '.join(DBconnect.alias), DBconnect.table))
         result = cur.fetchall()
         cur.close()
         conn.close()
         return result
 
     def runSql(self, sql):
+        result = []
         conn = cymysql.connect(
             host = config.DB_HOST, 
             user = config.DB_USER, 
@@ -45,5 +46,6 @@ class DBconnect:
         cur.execute(sql)
         result = cur.fetchall()
         cur.close()
+        conn.commit()
         conn.close()
-    
+        return result
