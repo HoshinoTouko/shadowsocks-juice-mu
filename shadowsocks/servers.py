@@ -116,7 +116,6 @@ def main():
     activeList = []
     loopTime = config.S_LOOP_CIRCLE
     while True:
-        time.sleep(loopTime)
         # Keep old users
         oldUsers = []
         for user in users:
@@ -220,6 +219,9 @@ def main():
         if config.S_DEBUG:
             logging.info('Update to database end.')
             logging.info('----------------------')
+        
+        # Loop
+        time.sleep(loopTime)
         
 if __name__ == '__main__':
     main()
