@@ -33,8 +33,8 @@ class DBconnect:
             result = cur.fetchall()
             cur.close()
             conn.close()
-        except:
-            logging.error('Cannot connect to database')
+        except Exception as e:
+            logging.error('Database error: %s' % str(e))
         return result
 
     def runSql(self, sql):
@@ -53,6 +53,6 @@ class DBconnect:
             cur.close()
             conn.commit()
             conn.close()
-        except expression as identifier:
-            logging.error('Cannot connect to database')
+        except Exception as e:
+            logging.error('Database error: %s' % str(e))
         return result
