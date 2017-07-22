@@ -1,5 +1,6 @@
 import config
 import cymysql
+import logging
 
 class DBconnect:
     conn = cymysql.connect(
@@ -19,33 +20,39 @@ class DBconnect:
         
     def fetchAll(self):
         result = []
-        conn = cymysql.connect(
-            host = config.DB_HOST, 
-            user = config.DB_USER, 
-            passwd = config.DB_PASS, 
-            db = config.DB_NAME,
-            port = config.DB_PORT,
-        )
-        cur = conn.cursor()
-        cur.execute('SELECT %s FROM %s' % (', '.join(DBconnect.alias), DBconnect.table))
-        result = cur.fetchall()
-        cur.close()
-        conn.close()
+        try:
+            conn = cymysql.connect(
+                host = config.DB_HOST, 
+                user = config.DB_USER, 
+                passwd = config.DB_PASS, 
+                db = config.DB_NAME,
+                port = config.DB_PORT,
+            )
+            cur = conn.cursor()
+            cur.execute('SELECT %s FROM %s' % (', '.join(DBconnect.alias), DBconnect.table))
+            result = cur.fetchall()
+            cur.close()
+            conn.close()
+        except expression as identifier:
+            logging.error('Error, msg: %s' % str(expression))
         return result
 
     def runSql(self, sql):
         result = []
-        conn = cymysql.connect(
-            host = config.DB_HOST, 
-            user = config.DB_USER, 
-            passwd = config.DB_PASS, 
-            db = config.DB_NAME,
-            port = config.DB_PORT,
-        )
-        cur = conn.cursor()
-        cur.execute(sql)
-        result = cur.fetchall()
-        cur.close()
-        conn.commit()
-        conn.close()
+        try:
+            conn = cymysql.connect(
+                host = config.DB_HOST, 
+                user = config.DB_USER, 
+                passwd = config.DB_PASS, 
+                db = config.DB_NAME,
+                port = config.DB_PORT,
+            )
+            cur = conn.cursor()
+            cur.execute(sql)
+            result = cur.fetchall()
+            cur.close()
+            conn.commit()
+            conn.close()
+        except expression as identifier:
+            logging.error('Error, msg: %s' % str(expression))
         return result
