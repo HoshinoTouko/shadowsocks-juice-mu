@@ -30,6 +30,7 @@ class DBconnect:
         cur.execute('select %s from %s' % (', '.join(DBconnect.alias), DBconnect.table))
         result = cur.fetchall()
         cur.close()
+        conn.close()
         return result
 
     def runSql(self, sql):
@@ -44,4 +45,5 @@ class DBconnect:
         cur.execute(sql)
         result = cur.fetchall()
         cur.close()
+        conn.close()
     
