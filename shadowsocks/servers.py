@@ -136,7 +136,7 @@ def main():
             logging.info('Transfer data %s' % str(transfer))
             logging.info('----------------')
 
-        # Check if the user's password has been changed
+        # Check if the user's password and method has been changed
         if config.S_DEBUG:
             logging.info('Check pass...')
         for user in users:
@@ -144,11 +144,19 @@ def main():
             newPass = user[1]
             for oldUser in oldUsers:
                 if serverPort == oldUser[0]:
+                    # Check if pass changed
                     if newPass != oldUser[1]:
                         if serverPort in activeList:
                             logging.info('port %d change its pass to %s' % (serverPort, newPass))
-                            socket_send_command('del: {"server_port": %d}' % serverPort)
-                            activeList.remove(userverPort)
+                            socket_send_command('remove: {"server_port": %d}' % serverPort)
+                            activeList.remove(serverPort)
+                    # Check if method changed
+                    if customMethod:
+                        if user[8] != oldUser[8]:
+                            if serverPort in activeList:
+                                logging.info('port %d change its method to %s' % (serverPort, user[8]))
+                                socket_send_command('remove: {"server_port": %d}' % serverPort)
+                                activeList.remove(serverPort)
                     continue
         if config.S_DEBUG:
             logging.info('Check pass end.')
@@ -163,12 +171,14 @@ def main():
             if (user[5]) and (user[2] + user[3] < user[4]):
                 if user[0] not in activeList:
                     data = {'server_port': int(user[0]), 'password': user[1]}
+                    # Check custom method
                     if customMethod:
-                        data['method'] = user[8]
+                        if not (user[8] == '' or user[8] == "NULL"):
+                            data['method'] = user[8]
                     if config.S_DEBUG:
                         logging.info('Add %s' % str(data))
                     socket_send_command('add: ' + str(data).replace("'", '"'))
-                    activeList.append(user[0])
+                    activeList.append(int(user[0]))
             else:
                 if user[0] in activeList:
                     socket_send_command('remove: {"server_port": %d}' % user[0])
