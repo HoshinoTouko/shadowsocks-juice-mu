@@ -30,6 +30,7 @@ import time
 import dbconnect
 import copy
 import json
+import traceback
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '../'))
 from shadowsocks import common, shell, daemon, eventloop, tcprelay, udprelay, \
