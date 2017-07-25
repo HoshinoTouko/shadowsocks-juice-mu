@@ -204,7 +204,7 @@ def main():
         for i in updateList:
             sql = 'UPDATE %s SET %s=%s+%d, %s=%s+%d, %s=%s WHERE %s=%d;' % (
                 config.DB_TABLE, 
-                alias[2], alias[2], int(i['u'])
+                alias[2], alias[2], int(i['u']),
                 alias[3], alias[3], int(i['d']), 
                 alias[6], str(int(time.time())),
                 alias[0], int(i['port'])
