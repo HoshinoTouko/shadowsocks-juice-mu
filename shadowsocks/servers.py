@@ -173,7 +173,11 @@ def main():
                     data = {'server_port': int(user[0]), 'password': user[1]}
                     # Check custom method
                     if customMethod:
-                        if not (user[8] == '' or user[8] == "NULL" or user[8] == "None"):
+                        if not (
+                            str(user[8]) == '' or 
+                            str(user[8]) == "NULL" or 
+                            str(user[8]) == "None"
+                            ):
                             data['method'] = user[8]
                     if config.S_DEBUG:
                         logging.info('Add %s' % str(data))
