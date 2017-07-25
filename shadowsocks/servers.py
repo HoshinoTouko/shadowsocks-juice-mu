@@ -191,7 +191,7 @@ def main():
                 if user[0] == port:
                     if config.S_DEBUG:
                         logging.info('Update user port at: %d' % port)
-                    updateList.append({'port': port, 'u': user[2],'d': user[3] + traffic})
+                    updateList.append({'port': port, 'u': 0,'d': traffic})
                     break
         if config.S_DEBUG:
             logging.info('Update list: %s' % str(updateList))
@@ -202,10 +202,10 @@ def main():
         if config.S_DEBUG:
             logging.info('Update to database...')
         for i in updateList:
-            sql = 'UPDATE %s SET %s=%d, %s=%d, %s=%s WHERE %s=%d;' % (
+            sql = 'UPDATE %s SET %s=%s+%d, %s=%s+%d, %s=%s WHERE %s=%d;' % (
                 config.DB_TABLE, 
-                alias[2], int(i['u']), 
-                alias[3], int(i['d']), 
+                alias[2], alias[2], int(i['u'])
+                alias[3], alias[3], int(i['d']), 
                 alias[6], str(int(time.time())),
                 alias[0], int(i['port'])
             )
